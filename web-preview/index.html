@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldBet - 黄金价格预测</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Status Bar Mock -->
+        <header class="header">
+            <div class="wallet-status">
+                <div class="wallet-icon">🔗</div>
+                <div class="wallet-info">
+                    <span class="wallet-label">已连接 Luffa 钱包</span>
+                    <span class="wallet-address">0x71C...492A</span>
+                </div>
+                <div class="points-badge">1,250 PTS</div>
+            </div>
+        </header>
+
+        <main class="content">
+            <!-- Current Price Card -->
+            <section class="price-card">
+                <div class="price-header">
+                    <h2 class="price-title">黄金现货 (XAU/USD)</h2>
+                    <div class="price-refresh" id="refresh-btn">
+                        <span class="refresh-icon">🔄</span>
+                    </div>
+                </div>
+                <div class="price-content">
+                    <div class="current-price">
+                        <span class="price" id="gold-price">2,045.50</span>
+                        <span class="price-unit">USD/oz</span>
+                    </div>
+                    <div class="price-change positive" id="gold-change">
+                        +$7.30 (+0.36%) ↑
+                    </div>
+                </div>
+                <div class="price-details">
+                    <div class="detail-item">
+                        <span class="detail-label">开盘</span>
+                        <span class="detail-value">2,040.00</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">最高</span>
+                        <span class="detail-value">2,055.20</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">最低</span>
+                        <span class="detail-value">2,038.10</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bet Widget -->
+            <section class="bet-widget">
+                <div class="bet-tabs">
+                    <div class="tab-item active" data-tab="direction">涨跌预测</div>
+                    <div class="tab-item" data-tab="volatility">波动率</div>
+                </div>
+
+                <!-- Direction View -->
+                <div id="direction-view" class="view active">
+                    <div class="section-title">由于明日收盘时...</div>
+                    <div class="direction-select">
+                        <button class="dir-btn up" id="btn-up">
+                            <span class="icon">📈</span> 看涨
+                        </button>
+                        <button class="dir-btn down" id="btn-down">
+                            <span class="icon">📉</span> 看跌
+                        </button>
+                    </div>
+                    <div class="amount-section">
+                        <div class="amount-header">
+                            <span class="amount-title">投喂积分</span>
+                            <span class="balance-text">余额: 1,250</span>
+                        </div>
+                        <div class="amount-input-wrapper">
+                            <span class="currency-symbol">◈</span>
+                            <input type="number" class="amount-input" value="100" step="50">
+                        </div>
+                        <div class="quick-amounts">
+                            <button class="quick-btn">50</button>
+                            <button class="quick-btn">100</button>
+                            <button class="quick-btn">200</button>
+                            <button class="quick-btn highlight">MAX</button>
+                        </div>
+                    </div>
+                    <button class="btn-trade up" id="confirm-trade">立即锁定预测</button>
+                </div>
+
+                <!-- Volatility View (Hidden by default) -->
+                <div id="volatility-view" class="view">
+                    <div class="section-title">预测明日波动幅度</div>
+                    <div class="vol-list">
+                        <div class="vol-item active" data-vol="small">
+                            <div class="vol-info">
+                                <span class="vol-label">温和波动</span>
+                                <span class="vol-range">&lt; 0.5%</span>
+                            </div>
+                            <div class="vol-dot small"></div>
+                        </div>
+                        <div class="vol-item" data-vol="medium">
+                            <div class="vol-info">
+                                <span class="vol-label">常规波动</span>
+                                <span class="vol-range">0.5% - 2%</span>
+                            </div>
+                            <div class="vol-dot medium"></div>
+                        </div>
+                        <div class="vol-item" data-vol="large">
+                            <div class="vol-info">
+                                <span class="vol-label">剧烈波动</span>
+                                <span class="vol-range">&gt; 2%</span>
+                            </div>
+                            <div class="vol-dot large"></div>
+                        </div>
+                    </div>
+                    <button class="btn-trade vol" style="margin-top: 40px">确认波动预测</button>
+                </div>
+
+                <p class="terms-text">预测结果将在次日交易结束后(约05:00 UTC)自动结算</p>
+            </section>
+
+            <!-- History Summary -->
+            <section class="history-summary">
+                <div class="section-header">
+                    <h3>我的预测表现</h3>
+                    <span class="more">查看全部 &gt;</span>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-value">60%</span>
+                        <span class="stat-label">准确率</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">9 / 15</span>
+                        <span class="stat-label">胜场</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">+450</span>
+                        <span class="stat-label">累计收益</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Tab Bar -->
+        <nav class="tab-bar">
+            <div class="tab-bar-item active">
+                <span class="tab-icon">🏠</span>
+                <span class="tab-label">首页</span>
+            </div>
+            <div class="tab-bar-item">
+                <span class="tab-icon">🏆</span>
+                <span class="tab-label">排行</span>
+            </div>
+            <div class="tab-bar-item">
+                <span class="tab-icon">📜</span>
+                <span class="tab-label">记录</span>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Success Modal Mock -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <div class="success-icon">✅</div>
+            <h2>预测已锁定!</h2>
+            <p>你的预测已记录到区块链。请在明天 05:00 后查看结果。</p>
+            <button id="close-modal">获得</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
