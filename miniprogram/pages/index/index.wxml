@@ -1,0 +1,212 @@
+<!-- pages/index/index.wxml -->
+<view class="container">
+  <!-- 顶部钱包状态 -->
+  <view class="wallet-status card">
+    <view wx:if="{{isLoggedIn}}" class="wallet-connected">
+      <view class="wallet-icon">🔗</view>
+      <view class="wallet-info">
+        <text class="wallet-label">已连接钱包</text>
+        <text class="wallet-address">{{walletAddress}}</text>
+      </view>
+      <button class="btn-logout" bindtap="handleLogout" size="mini">退出</button>
+    </view>
+    <view wx:else class="wallet-disconnected">
+      <view class="wallet-icon">🔓</view>
+      <view class="wallet-info">
+        <text class="wallet-label">未连接钱包</text>
+        <text class="wallet-hint">连接钱包以开始预测</text>
+      </view>
+      <button class="btn-primary" bindtap="handleLogin">连接钱包</button>
+    </view>
+  </view>
+
+  <!-- 当前金价卡片 -->
+  <view class="price-card card">
+    <view class="price-header">
+      <text class="price-title">当前金价</text>
+      <view class="price-refresh" bindtap="refreshPrice">
+        <text class="refresh-icon {{isRefreshing ? 'rotating' : ''}}">⟳</text>
+        <text class="refresh-text">刷新</text>
+      </view>
+    </view>
+
+    <view wx:if="{{priceData}}" class="price-content">
+      <view class="current-price">
+        <text class="price">{{priceData.currentPrice}}</text>
+        <text class="price-unit">USD/盎司</text>
+      </view>
+
+      <view class="price-change {{priceData.changePercent >= 0 ? 'positive' : 'negative'}}">
+        <text>{{priceData.changeText}}</text>
+      </view>
+
+      <view class="price-details">
+        <view class="detail-item">
+          <text class="detail-label">昨日收盘</text>
+          <text class="detail-value">{{priceData.previousClose}}</text>
+        </view>
+        <view class="detail-item">
+          <text class="detail-label">更新时间</text>
+          <text class="detail-value">{{priceData.updateTime}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="price-loading">
+      <view class="loading">
+        <text>加载中...</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 模式切换器 -->
+  <view class="mode-selector">
+    <view 
+      class="mode-item {{bettingMode === 'direction' ? 'active' : ''}}" 
+      bindtap="switchMode" 
+      data-mode="direction"
+    >Directional</view>
+    <view 
+      class="mode-item {{bettingMode === 'volatility' ? 'active' : ''}}" 
+      bindtap="switchMode" 
+      data-mode="volatility"
+    >Volatility</view>
+  </view>
+
+  <!-- 1. 猜涨跌面板 -->
+  <view class="bet-widget card" wx:if="{{bettingMode === 'direction'}}">
+    <view class="bet-tabs">
+      <view class="tab-item active">Buy</view>
+    </view>
+
+    <view class="direction-select">
+      <view 
+        class="dir-btn up {{betDirection === 'up' ? 'active' : ''}}" 
+        bindtap="selectDirection" 
+        data-direction="up"
+      >
+        <text class="dir-icon">📈</text>
+        <text>Up $0.74</text>
+      </view>
+      <view 
+        class="dir-btn down {{betDirection === 'down' ? 'active' : ''}}" 
+        bindtap="selectDirection" 
+        data-direction="down"
+      >
+        <text class="dir-icon">📉</text>
+        <text>Down $0.27</text>
+      </view>
+    </view>
+
+    <view class="amount-section">
+      <view class="amount-header">
+        <text class="amount-title">Amount</text>
+        <text class="balance-text">Balance ${{balance}}</text>
+      </view>
+      <view class="amount-input-wrapper">
+        <text class="currency-symbol">$</text>
+        <input 
+          class="amount-input" 
+          type="digit" 
+          placeholder="0.00" 
+          value="{{betAmount}}" 
+          bindinput="onAmountInput"
+        />
+      </view>
+    </view>
+
+    <view class="quick-amounts">
+      <view class="quick-btn" bindtap="addAmount" data-value="{{1}}">+$1</view>
+      <view class="quick-btn" bindtap="addAmount" data-value="{{20}}">+$20</view>
+      <view class="quick-btn" bindtap="addAmount" data-value="{{100}}">+$100</view>
+      <view class="quick-btn" bindtap="setMaxAmount">Max</view>
+    </view>
+
+    <button 
+      class="btn-trade {{betDirection === 'up' ? 'up' : 'down'}}" 
+      bindtap="submitBet" 
+      loading="{{isSubmitting}}"
+    >
+      {{betDirection === 'up' ? 'Buy Up' : 'Buy Down'}}
+    </button>
+
+    <view class="terms-text">
+      Settles tomorrow at 16:00 UTC. No modifications after purchase.
+    </view>
+  </view>
+
+  <!-- 2. 猜波动率面板 -->
+  <view class="bet-widget card" wx:if="{{bettingMode === 'volatility'}}">
+    <view class="bet-tabs">
+      <view class="tab-item active">Buy Volatility</view>
+    </view>
+
+    <view class="vol-section">
+      <view class="section-title">Select Range</view>
+      <view class="vol-list">
+        <view 
+          class="vol-item {{betVolatility === 'small' ? 'active' : ''}}" 
+          bindtap="selectVolatility" 
+          data-volatility="small"
+        >
+          <view class="vol-info">
+            <text class="vol-label">Low Volatility</text>
+            <text class="vol-range">{{volatilityRanges.small}}</text>
+          </view>
+          <view class="vol-dot small"></view>
+        </view>
+        <view 
+          class="vol-item {{betVolatility === 'medium' ? 'active' : ''}}" 
+          bindtap="selectVolatility" 
+          data-volatility="medium"
+        >
+          <view class="vol-info">
+            <text class="vol-label">Mid Volatility</text>
+            <text class="vol-range">{{volatilityRanges.medium}}</text>
+          </view>
+          <view class="vol-dot medium"></view>
+        </view>
+        <view 
+          class="vol-item {{betVolatility === 'large' ? 'active' : ''}}" 
+          bindtap="selectVolatility" 
+          data-volatility="large"
+        >
+          <view class="vol-info">
+            <text class="vol-label">High Volatility</text>
+            <text class="vol-range">{{volatilityRanges.large}}</text>
+          </view>
+          <view class="vol-dot large"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="amount-section">
+      <view class="amount-header">
+        <text class="amount-title">Investment</text>
+        <text class="balance-text">Balance ${{balance}}</text>
+      </view>
+      <view class="amount-input-wrapper">
+        <text class="currency-symbol">$</text>
+        <input 
+          class="amount-input" 
+          type="digit" 
+          placeholder="0.00" 
+          value="{{betAmount}}" 
+          bindinput="onAmountInput"
+        />
+      </view>
+    </view>
+
+    <button 
+      class="btn-trade vol" 
+      bindtap="submitBet" 
+      loading="{{isSubmitting}}"
+    >
+      Invest in Volatility
+    </button>
+
+    <view class="terms-text">
+      Volatility = |High - Low| / Open * 100%. Rewards based on accuracy.
+    </view>
+  </view>
+</view>

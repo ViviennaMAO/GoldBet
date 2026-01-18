@@ -1,0 +1,46 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/history/history",
+    "pages/leaderboard/leaderboard"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#000000",
+    "navigationBarTitleText": "GoldBet",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#000000"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#7A7E83",
+    "selectedColor": "#FFD700",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
+      },
+      {
+        "pagePath": "pages/history/history",
+        "text": "记录",
+        "iconPath": "images/history.png",
+        "selectedIconPath": "images/history-active.png"
+      },
+      {
+        "pagePath": "pages/leaderboard/leaderboard",
+        "text": "排行",
+        "iconPath": "images/leaderboard.png",
+        "selectedIconPath": "images/leaderboard-active.png"
+      }
+    ]
+  },
+  "networkTimeout": {
+    "request": 10000,
+    "downloadFile": 10000
+  },
+  "debug": true
+}

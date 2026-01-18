@@ -1,0 +1,100 @@
+<!-- pages/history/history.wxml -->
+<view class="container">
+  <!-- 统计概览 -->
+  <view class="stats-overview card">
+    <view class="stats-title">Performance Overview</view>
+
+    <view wx:if="{{stats}}" class="stats-grid">
+      <view class="stat-box">
+        <text class="stat-label">TOTAL</text>
+        <text class="stat-number">{{stats.totalPredictions}}</text>
+      </view>
+      <view class="stat-box">
+        <text class="stat-label">WIN</text>
+        <text class="stat-number correct">{{stats.correctPredictions}}</text>
+      </view>
+      <view class="stat-box">
+        <text class="stat-label">ACCURACY</text>
+        <text class="stat-number accuracy">{{stats.accuracy}}%</text>
+      </view>
+      <view class="stat-box">
+        <text class="stat-label">POINTS</text>
+        <text class="stat-number points">{{stats.points}}</text>
+      </view>
+    </view>
+
+    <view wx:if="{{stats && stats.consecutiveWins > 0}}" class="streak-badge">
+      <text class="streak-icon">🔥</text>
+      <text class="streak-text">{{stats.consecutiveWins}} Day Winning Streak</text>
+    </view>
+  </view>
+
+  <!-- 预测记录列表 -->
+  <view class="records-section">
+    <view class="section-header">
+      <text class="section-title">Prediction History</text>
+      <text class="section-count">{{predictions.length}} Items</text>
+    </view>
+
+    <view wx:if="{{predictions.length > 0}}" class="records-list">
+      <view wx:for="{{predictions}}" wx:key="id" class="record-item card">
+        <view class="record-header">
+          <text class="record-date">{{item.date}}</text>
+          <view class="record-status {{item.status}}">
+            {{item.status === 'settled' ? 'SETTLED' : 'PENDING'}}
+          </view>
+        </view>
+
+        <view class="record-body">
+          <!-- 预测详情 -->
+          <view class="prediction-details">
+            <view class="prediction-col">
+              <text class="sub-label">DIRECTION</text>
+              <view class="value-with-icon">
+                <text class="pred-val">{{item.directionText}}</text>
+                <icon wx:if="{{item.status === 'settled'}}" type="{{item.directionCorrect ? 'success_no_circle' : 'clear'}}" size="14" color="{{item.directionCorrect ? '#22c55e' : '#ef4444'}}" />
+              </view>
+            </view>
+            <view class="prediction-col">
+              <text class="sub-label">VOLATILITY</text>
+              <view class="value-with-icon">
+                <text class="pred-val">{{item.volatilityText}}</text>
+                <icon wx:if="{{item.status === 'settled'}}" type="{{item.volatilityCorrect ? 'success_no_circle' : 'clear'}}" size="14" color="{{item.volatilityCorrect ? '#22c55e' : '#ef4444'}}" />
+              </view>
+            </view>
+          </view>
+
+          <!-- 价格详情 -->
+          <view wx:if="{{item.status === 'settled'}}" class="price-details-box">
+            <view class="price-row">
+              <text class="price-label">Base Price</text>
+              <text class="price-val">{{item.basePrice}}</text>
+            </view>
+            <view class="price-row">
+              <text class="price-label">Final Price</text>
+              <text class="price-val">{{item.resultPrice}}</text>
+            </view>
+            <view class="price-row">
+              <text class="price-label">Actual Vol</text>
+              <text class="price-val highlight">{{item.resultVolatilityText}}</text>
+            </view>
+          </view>
+
+          <!-- 分数展示 -->
+          <view wx:if="{{item.status === 'settled' && item.pointsEarned > 0}}" class="points-badge">
+            <text class="stars">⭐</text>
+            <text class="points-num">+{{item.pointsEarned}} POINTS</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:else class="empty-state">
+      <text class="empty-icon">📊</text>
+      <text class="empty-text">No prediction records found.</text>
+      <button class="btn-primary" bindtap="goToPredict">Start Prediction</button>
+    </view>
+  </view>
+
+</view>

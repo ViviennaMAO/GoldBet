@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "预测记录",
+  "navigationBarBackgroundColor": "#1E3A8A",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
+}

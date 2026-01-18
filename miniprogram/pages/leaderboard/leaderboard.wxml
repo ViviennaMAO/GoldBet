@@ -1,0 +1,86 @@
+<!-- pages/leaderboard/leaderboard.wxml -->
+<view class="container">
+  <!-- 排行榜类型切换 -->
+  <view class="tabs">
+    <view
+      class="tab-item {{activeTab === 'points' ? 'active' : ''}}"
+      bindtap="switchTab"
+      data-tab="points"
+    >
+      <text>积分榜</text>
+    </view>
+    <view
+      class="tab-item {{activeTab === 'accuracy' ? 'active' : ''}}"
+      bindtap="switchTab"
+      data-tab="accuracy"
+    >
+      <text>准确率榜</text>
+    </view>
+    <view
+      class="tab-item {{activeTab === 'streak' ? 'active' : ''}}"
+      bindtap="switchTab"
+      data-tab="streak"
+    >
+      <text>连胜榜</text>
+    </view>
+  </view>
+
+  <!-- 我的排名 -->
+  <view wx:if="{{myRank}}" class="my-rank card">
+    <view class="rank-badge my">
+      <text class="rank-number">{{myRank.rank}}</text>
+    </view>
+    <view class="rank-info">
+      <text class="rank-address">{{myRank.address}}</text>
+      <text class="rank-label">我的排名</text>
+    </view>
+    <view class="rank-score">
+      <text class="score-value">{{myRank.value}}</text>
+      <text class="score-unit">{{myRank.unit}}</text>
+    </view>
+  </view>
+
+  <!-- 排行榜列表 -->
+  <view class="leaderboard-list">
+    <view wx:if="{{leaderboard.length > 0}}">
+      <view wx:for="{{leaderboard}}" wx:key="userId" class="rank-item {{index < 3 ? 'top-three' : ''}}">
+        <!-- 排名徽章 -->
+        <view class="rank-badge {{index === 0 ? 'first' : index === 1 ? 'second' : index === 2 ? 'third' : ''}}">
+          <text wx:if="{{index === 0}}" class="rank-medal">🥇</text>
+          <text wx:elif="{{index === 1}}" class="rank-medal">🥈</text>
+          <text wx:elif="{{index === 2}}" class="rank-medal">��</text>
+          <text wx:else class="rank-number">{{item.rank}}</text>
+        </view>
+
+        <!-- 用户信息 -->
+        <view class="rank-user">
+          <text class="user-address">{{item.address}}</text>
+          <view class="user-stats">
+            <text class="stat-text">预测: {{item.totalPredictions}}次</text>
+            <text wx:if="{{activeTab === 'accuracy'}}" class="stat-text">正确: {{item.correctPredictions}}次</text>
+          </view>
+        </view>
+
+        <!-- 分数 -->
+        <view class="rank-score">
+          <text class="score-value">{{item.value}}</text>
+          <text class="score-unit">{{item.unit}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view wx:else class="empty-state">
+      <text class="empty-icon">🏆</text>
+      <text class="empty-text">暂无排行数据</text>
+    </view>
+  </view>
+
+  <!-- 刷新按钮 -->
+  <view class="refresh-section">
+    <button class="btn-refresh" bindtap="refreshLeaderboard">
+      <text class="refresh-icon {{isRefreshing ? 'rotating' : ''}}">⟳</text>
+      <text>刷新排行榜</text>
+    </button>
+  </view>
+</view>

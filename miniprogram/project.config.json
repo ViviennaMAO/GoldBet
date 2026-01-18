@@ -1,0 +1,47 @@
+{
+	"projectid": "mp6z7ewvd4z89t1h_GoldBet",
+	"setting": {
+		"urlCheck": false,
+		"es6": true,
+		"postcss": true,
+		"minified": true,
+		"newFeature": true,
+		"autoAudits": false,
+		"nodeModules": true,
+		"uploadWithSourceMap": true,
+		"uglifyFileName": true,
+		"remoteDebugLogEnable": true,
+		"prefetch": false
+	},
+	"LuffaToolsLibVersion": "2.3.1",
+	"compileType": "miniprogram",
+	"createTime": 1768668726638,
+	"accessTime": 1768668726638,
+	"packOptions": {
+		"ignore": []
+	},
+	"debugOptions": {
+		"hidedInDevtools": []
+	},
+	"LuffaToolsappid": "mp6z7ewvd4z89t1h",
+	"projectname": "GoldBet",
+	"scripts": {},
+	"condition": {
+		"search": {
+			"current": -1,
+			"list": []
+		},
+		"conversation": {
+			"current": -1,
+			"list": []
+		},
+		"game": {
+			"currentL": -1,
+			"list": []
+		},
+		"miniprogram": {
+			"current": -1,
+			"list": []
+		}
+	}
+}

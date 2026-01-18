@@ -1,0 +1,381 @@
+/* pages/index/index.wxss */
+.container {
+  padding-top: 20rpx;
+  background-color: #000000;
+}
+
+/* 钱包卡片 */
+.wallet-status {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+}
+
+.wallet-connected, .wallet-disconnected {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.wallet-icon {
+  font-size: 48rpx;
+  margin-right: 24rpx;
+}
+
+.wallet-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.wallet-label {
+  font-size: 24rpx;
+  color: #888;
+  margin-bottom: 4rpx;
+}
+
+.wallet-address {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.wallet-hint {
+  font-size: 24rpx;
+  color: #444;
+}
+
+.btn-logout {
+  padding: 0 20rpx !important;
+  height: 50rpx;
+  line-height: 50rpx;
+  background-color: #1a1a1a;
+  color: #888;
+  border-radius: 10rpx;
+  font-size: 20rpx;
+}
+
+/* 金价卡片 */
+.price-card {
+  text-align: center;
+}
+
+.price-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.price-title {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.price-refresh {
+  display: flex;
+  align-items: center;
+  color: #3b82f6;
+  font-size: 24rpx;
+}
+
+.refresh-icon {
+  margin-right: 8rpx;
+  font-size: 28rpx;
+}
+
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.price-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.current-price {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 16rpx;
+}
+
+.price {
+  font-size: 64rpx;
+  font-weight: 800;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.price-unit {
+  font-size: 24rpx;
+  color: #888;
+  margin-left: 12rpx;
+}
+
+.price-change {
+  font-size: 28rpx;
+  font-weight: 600;
+  padding: 8rpx 20rpx;
+  border-radius: 40rpx;
+  margin-bottom: 30rpx;
+}
+
+.price-change.positive {
+  background-color: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.price-change.negative {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.price-details {
+  display: flex;
+  width: 100%;
+  border-top: 1rpx solid #1E1E1E;
+  padding-top: 24rpx;
+}
+
+.detail-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.detail-label {
+  font-size: 22rpx;
+  color: #444;
+  margin-bottom: 4rpx;
+}
+
+.detail-value {
+  font-size: 24rpx;
+  color: #888;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* 下注组件 (暗黑交易风格) */
+.bet-widget {
+  background-color: #121212 !important;
+  color: #FFFFFF;
+  padding: 40rpx !important;
+  margin-bottom: 40rpx;
+}
+
+.bet-tabs {
+  display: flex;
+  align-items: center;
+  margin-bottom: 40rpx;
+  border-bottom: 1rpx solid #1E1E1E;
+  padding-bottom: 4rpx;
+}
+
+.tab-item {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-right: 48rpx;
+  padding-bottom: 16rpx;
+  position: relative;
+}
+
+.tab-item::after {
+  content: '';
+  position: absolute;
+  bottom: -4rpx;
+  left: 0;
+  width: 100%;
+  height: 4rpx;
+  background-color: #FFFFFF;
+}
+
+.direction-select {
+  display: flex;
+  gap: 24rpx;
+  margin-bottom: 48rpx;
+}
+
+.dir-btn {
+  flex: 1;
+  height: 110rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  border-radius: 24rpx;
+  font-weight: 700;
+  font-size: 30rpx;
+  border: 1rpx solid #1E1E1E;
+  background-color: #1a1a1a;
+}
+
+.dir-btn.up.active {
+  background-color: #22c55e;
+  border-color: #22c55e;
+  color: #FFFFFF;
+}
+
+.dir-btn.down.active {
+  background-color: #1a1a1a;
+  border-color: #ef4444; 
+}
+
+.dir-btn.down.active text {
+  color: #ef4444;
+}
+
+/* 波动率列表样式 */
+.vol-section {
+  margin-bottom: 48rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  color: #FFFFFF;
+  font-weight: 600;
+  margin-bottom: 24rpx;
+}
+
+.vol-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.vol-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  background: #1a1a1a;
+  border: 1rpx solid #1E1E1E;
+  border-radius: 20rpx;
+}
+
+.vol-item.active {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.vol-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.vol-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.vol-range {
+  font-size: 22rpx;
+  color: #888;
+}
+
+.vol-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+}
+
+.vol-dot.small { background-color: #22c55e; box-shadow: 0 0 10rpx rgba(34, 197, 94, 0.4); }
+.vol-dot.medium { background-color: #eab308; box-shadow: 0 0 10rpx rgba(234, 179, 8, 0.4); }
+.vol-dot.large { background-color: #ef4444; box-shadow: 0 0 10rpx rgba(239, 68, 68, 0.4); }
+
+/* 金额输入样式 */
+.amount-section {
+  margin-bottom: 32rpx;
+}
+
+.amount-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.amount-title {
+  font-size: 26rpx;
+  color: #888;
+}
+
+.balance-text {
+  font-size: 24rpx;
+  color: #444;
+}
+
+.amount-input-wrapper {
+  background-color: #1a1a1a;
+  border: 1rpx solid #1E1E1E;
+  border-radius: 20rpx;
+  height: 120rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 32rpx;
+}
+
+.currency-symbol {
+  font-size: 40rpx;
+  color: #444;
+  margin-right: 16rpx;
+}
+
+.amount-input {
+  flex: 1;
+  font-size: 44rpx;
+  height: 100%;
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.quick-amounts {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 48rpx;
+}
+
+.quick-btn {
+  flex: 1;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #1a1a1a;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+  color: #666;
+  font-weight: 600;
+  border: 1rpx solid #1E1E1E;
+}
+
+.btn-trade {
+  width: 100% !important;
+  height: 110rpx;
+  border-radius: 24rpx;
+  font-size: 34rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32rpx;
+  border: none;
+}
+
+.btn-trade.up { background-color: #3b82f6; color: #FFFFFF; }
+.btn-trade.down { background-color: #ef4444; color: #FFFFFF; }
+.btn-trade.vol { background-color: #3b82f6; color: #FFFFFF; }
+
+.terms-text {
+  text-align: center;
+  font-size: 22rpx;
+  color: #444;
+  line-height: 1.5;
+}
