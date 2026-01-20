@@ -88,8 +88,27 @@ const API = {
    */
   walletLogin: async (walletAddress) => {
     try {
-      const email = `${walletAddress.toLowerCase()}@goldbet.app`;
+      // 由于 Luffa 钱包地址过长（44个字符），会导致 Supabase 邮箱验证失败
+      // 使用地址的简化版本作为邮箱（前8位+后8位+原始地址的简单哈希）
+      const shortAddress = walletAddress.substring(0, 8).toLowerCase() +
+                          walletAddress.substring(walletAddress.length - 8).toLowerCase();
+
+      // 添加一个简单的校验码，防止地址冲突
+      let hash = 0;
+      for (let i = 0; i < walletAddress.length; i++) {
+        hash = ((hash << 5) - hash) + walletAddress.charCodeAt(i);
+        hash = hash & hash; // Convert to 32bit integer
+      }
+      const checksum = Math.abs(hash).toString(36).substring(0, 4);
+
+      const email = `${shortAddress}${checksum}@goldbet.app`;
       const password = walletAddress;
+
+      console.log('钱包登录信息:', {
+        原始地址: walletAddress,
+        邮箱地址: email,
+        邮箱长度: email.length
+      });
 
       // 尝试登录
       let authData;
