@@ -108,11 +108,30 @@ Page({
    * 加载用户统计数据
    */
   loadUserStats: function () {
+    // 检查是否已登录
+    if (!app.globalData.isLoggedIn) {
+      console.log('未登录，跳过加载用户统计');
+      return;
+    }
+
     API.getUserStats()
       .then(res => {
-        this.setData({
-          userStats: res.data
-        });
+        if (res && res.success && res.data) {
+          this.setData({
+            userStats: res.data
+          });
+        } else {
+          // 使用默认数据
+          this.setData({
+            userStats: {
+              totalPredictions: 0,
+              correctPredictions: 0,
+              accuracy: 0,
+              points: 0,
+              rank: null
+            }
+          });
+        }
       })
       .catch(err => {
         console.error('加载用户统计失败:', err);
@@ -133,14 +152,26 @@ Page({
    * 检查今日是否已预测
    */
   checkTodayPrediction: function () {
+    // 检查是否已登录
+    if (!app.globalData.isLoggedIn) {
+      console.log('未登录，跳过检查预测状态');
+      return;
+    }
+
     API.checkTodayPrediction()
       .then(res => {
-        this.setData({
-          hasPredicted: res.data.hasPredicted
-        });
+        if (res && res.success && res.data) {
+          this.setData({
+            hasPredicted: res.data.hasPredicted || false
+          });
+        }
       })
       .catch(err => {
         console.error('检查预测状态失败:', err);
+        // 默认为未预测
+        this.setData({
+          hasPredicted: false
+        });
       });
   },
 
