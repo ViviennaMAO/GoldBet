@@ -1,0 +1,44 @@
+name: Update Gold Price
+
+on:
+  schedule:
+    # 每小时的第5分钟执行（避开整点高峰）
+    - cron: '5 * * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  update-price:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install axios @supabase/supabase-js
+
+      - name: Update gold price
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          GOLD_API_KEY: goldapi-3ykfysmkjea0q6-io
+        run: |
+          # 使用环境变量替换脚本中的占位符
+          sed -i "s/YOUR_SERVICE_ROLE_KEY/$SUPABASE_SERVICE_ROLE_KEY/" scripts/update-gold-price.js
+
+          # 运行更新脚本
+          node scripts/update-gold-price.js
+
+      - name: Upload logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: update-logs
+          path: |
+            *.log
+          retention-days: 7

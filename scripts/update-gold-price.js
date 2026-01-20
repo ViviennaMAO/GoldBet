@@ -7,7 +7,8 @@ const axios = require('axios');
 // Supabase 配置
 // 注意：这里需要使用 Service Role Key，从 Supabase Dashboard > Settings > API 获取
 const SUPABASE_URL = 'https://xdvulevrojtvhcmdaexd.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY = 'YOUR_SERVICE_ROLE_KEY'; // 替换为实际的 Service Role Key
+// 优先使用环境变量，本地开发时可以直接写在这里
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdnVsZXZyb2p0dmhjbWRhZXhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODcxNDM1OSwiZXhwIjoyMDg0MjkwMzU5fQ.2lca1CIbGfuV6CVIQuAgLcPQzZFpJJ25_ES27RK6nHA';
 
 // GoldAPI.io 配置
 const GOLD_API_KEY = 'goldapi-3ykfysmkjea0q6-io';
