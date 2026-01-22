@@ -3,16 +3,14 @@
 
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
-const { HttpsProxyAgent } = require('https-proxy-agent');
-const https = require('https');
 
 // 环境变量检查
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://xdvulevrojtvhcmdaexd.supabase.co';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GOLD_API_KEY = process.env.GOLD_API_KEY;
 
-// 代理配置 (支持 HTTP/HTTPS 代理)
-const PROXY_URL = process.env.PROXY_URL || process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
+// 代理配置 (去除首尾空格)
+const RAW_PROXY_URL = (process.env.PROXY_URL || process.env.HTTP_PROXY || process.env.HTTPS_PROXY || '').trim();
 
 // 验证必要配置
 if (!SUPABASE_SERVICE_ROLE_KEY) {
@@ -29,68 +27,61 @@ if (!GOLD_API_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 /**
- * 解析并编码代理 URL
- * 解决密码中包含特殊字符导致的 407 错误
+ * 解析代理配置对象
+ * 将 URL 字符串转换为 Axios 需要的 proxy 对象
  */
-function getSafeProxyAgent(proxyUrlStr) {
+function getProxyConfig() {
+  if (!RAW_PROXY_URL) return null;
+
   try {
-    // 1. 尝试直接解析
-    const url = new URL(proxyUrlStr);
+    console.log('🔍 解析代理配置...');
+    const url = new URL(RAW_PROXY_URL);
 
-    // 如果有用户名密码，需要重新构建
+    // 基础配置
+    const proxyConfig = {
+      protocol: url.protocol.replace(':', ''), // http or https
+      host: url.hostname,
+      port: parseInt(url.port)
+    };
+
+    // 认证配置
     if (url.username && url.password) {
-      // 注意：decodeURIComponent 是为了防止已经被编码过的字符被二次编码
-      // 但这里我们假设输入的是原始字符串，或者已经是部分编码的
-      // 最稳妥的方式是：手动提取，然后重新正确编码
+      console.log('🔒 发现代理认证信息，正在配置...');
+      // 必须对取出的 username/password 进行 decode，防止被双重编码
+      // 因为 new URL() 会自动对部分字符编码，或者用户已经编码过
+      // Axios 的 auth 字段需要原始字符串
+      proxyConfig.auth = {
+        username: decodeURIComponent(url.username),
+        password: decodeURIComponent(url.password)
+      };
 
-      // 使用正则从原始字符串中提取，因为 new URL() 可能已经把某些字符搞乱了
-      // 格式通常是: protocol://user:pass@host:port
-      const match = proxyUrlStr.match(/^(https?:\/\/)([^:]+):([^@]+)@(.+)$/);
-
-      if (match) {
-        console.log('🔒 检测到认证信息，正在重组安全 URL...');
-        const protocol = match[1];
-        const user = match[2];
-        const pass = match[3];
-        const hostPath = match[4];
-
-        // 对用户名和密码进行编码
-        const encodedUser = encodeURIComponent(decodeURIComponent(user));
-        const encodedPass = encodeURIComponent(decodeURIComponent(pass));
-
-        const safeUrl = `${protocol}${encodedUser}:${encodedPass}@${hostPath}`;
-        return new HttpsProxyAgent(safeUrl);
-      }
+      // 调试日志 (隐藏敏感信息)
+      const maskPass = proxyConfig.auth.password.substring(0, 3) + '***' + proxyConfig.auth.password.substring(proxyConfig.auth.password.length - 3);
+      console.log(`👤 用户: ${proxyConfig.auth.username}`);
+      console.log(`🔑 密码: ${maskPass} (长度: ${proxyConfig.auth.password.length})`);
     }
 
-    return new HttpsProxyAgent(proxyUrlStr);
+    console.log(`🌐 代理地址: ${proxyConfig.host}:${proxyConfig.port}`);
+    return proxyConfig;
 
   } catch (e) {
-    console.error('⚠️ 代理 URL 解析异常:', e.message);
-    return new HttpsProxyAgent(proxyUrlStr);
+    console.error('❌ 代理 URL 解析失败，将尝试直连:', e.message);
+    return null;
   }
 }
 
 /**
- * 获取 Axios 实例（根据是否配置代理）
+ * 获取 Axios 实例
  */
 function getAxiosInstance() {
   const config = {
-    timeout: 20000 // 增加到 20s
+    timeout: 20000 // 20秒超时
   };
 
-  if (PROXY_URL) {
-    console.log(`🌐 检测到代理配置，正在初始化...`);
-    try {
-      const agent = getSafeProxyAgent(PROXY_URL);
-
-      config.httpsAgent = agent;
-      config.proxy = false; // 禁用默认 proxy
-
-      console.log('✅ 代理 Agent 已配置');
-    } catch (e) {
-      console.error('❌ 代理配置失败:', e.message);
-    }
+  const proxyConfig = getProxyConfig();
+  if (proxyConfig) {
+    config.proxy = proxyConfig;
+    console.log('✅ 已启用 Axios 原生代理模式');
   } else {
     console.log('DIRECT 连接（无代理）');
   }
@@ -140,8 +131,13 @@ async function fetchGoldPrice() {
       console.error('   状态码:', error.response.status);
 
       if (error.response.status === 407) {
-        console.error('   🚨 代理认证失败 (407)！已尝试自动编码.');
+        console.error('   🚨 代理认证依然失败 (407)');
+        console.error('   建议检查: 1. 密码是否包含特殊字符 2. 流量包是否已用尽 3. IP白名单限制');
+      } else if (error.response.status === 403) {
+        console.error('   🚫 访问被拒绝 (403): 可能是 IP 问题或 API Key 限制');
       }
+    } else {
+      console.error('   错误详情:', error.code || error);
     }
 
     throw error;
