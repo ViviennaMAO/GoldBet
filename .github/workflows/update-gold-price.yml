@@ -26,11 +26,9 @@ jobs:
       - name: Update gold price
         env:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          GOLD_API_KEY: goldapi-3ykfysmkjea0q6-io
+          GOLD_API_KEY: ${{ secrets.GOLD_API_KEY }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
         run: |
-          # 使用环境变量替换脚本中的占位符
-          sed -i "s/YOUR_SERVICE_ROLE_KEY/$SUPABASE_SERVICE_ROLE_KEY/" scripts/update-gold-price.js
-
           # 运行更新脚本
           node scripts/update-gold-price.js
 

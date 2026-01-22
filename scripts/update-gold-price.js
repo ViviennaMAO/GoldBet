@@ -3,17 +3,69 @@
 
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
+const https = require('https');
 
-// Supabase 配置
-// 注意：这里需要使用 Service Role Key，从 Supabase Dashboard > Settings > API 获取
-const SUPABASE_URL = 'https://xdvulevrojtvhcmdaexd.supabase.co';
-// 优先使用环境变量，本地开发时可以直接写在这里
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhkdnVsZXZyb2p0dmhjbWRhZXhkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODcxNDM1OSwiZXhwIjoyMDg0MjkwMzU5fQ.2lca1CIbGfuV6CVIQuAgLcPQzZFpJJ25_ES27RK6nHA';
+// 环境变量检查
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://xdvulevrojtvhcmdaexd.supabase.co';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const GOLD_API_KEY = process.env.GOLD_API_KEY;
 
-// GoldAPI.io 配置
-const GOLD_API_KEY = 'goldapi-3ykfysmkjea0q6-io';
+// 代理配置
+const PROXY_URL = process.env.PROXY_URL || process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
 
+// 验证必要配置
+if (!SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('❌ 错误：未配置 SUPABASE_SERVICE_ROLE_KEY');
+  process.exit(1);
+}
+
+if (!GOLD_API_KEY) {
+  console.error('❌ 错误：未配置 GOLD_API_KEY');
+  process.exit(1);
+}
+
+// 初始化 Supabase
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+/**
+ * 获取 Axios 实例（根据是否配置代理）
+ */
+function getAxiosInstance() {
+  const config = {
+    timeout: 10000
+  };
+
+  if (PROXY_URL) {
+    console.log(`🌐 检测到代理配置: ${PROXY_URL}`);
+    try {
+      const proxyUrl = new URL(PROXY_URL);
+      config.proxy = {
+        protocol: proxyUrl.protocol.replace(':', ''),
+        host: proxyUrl.hostname,
+        port: proxyUrl.port,
+        auth: proxyUrl.username ? {
+          username: proxyUrl.username,
+          password: proxyUrl.password
+        } : undefined
+      };
+
+      // 如果使用 HTTPS 代理，可能还需要 httpsAgent
+      if (proxyUrl.protocol === 'https:') {
+        config.httpsAgent = new https.Agent({
+          rejectUnauthorized: false // 视情况而定，有些代理可能证书不被信任
+        });
+      }
+
+    } catch (e) {
+      console.error('❌ 代理 URL 解析失败:', e.message);
+      // 继续尝试直连
+    }
+  } else {
+    console.log('DIRECT 连接（无代理）');
+  }
+
+  return axios.create(config);
+}
 
 /**
  * 从 GoldAPI.io 获取最新金价
@@ -22,7 +74,9 @@ async function fetchGoldPrice() {
   try {
     console.log('📡 正在从 GoldAPI.io 获取金价...');
 
-    const response = await axios.get('https://www.goldapi.io/api/XAU/USD', {
+    const client = getAxiosInstance();
+
+    const response = await client.get('https://www.goldapi.io/api/XAU/USD', {
       headers: {
         'x-access-token': GOLD_API_KEY,
         'Content-Type': 'application/json'
@@ -58,6 +112,8 @@ async function fetchGoldPrice() {
       if (error.response.status === 429) {
         console.error('   提示: GoldAPI.io 免费版限制为 1次/小时，请稍后再试');
       }
+    } else if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
+      console.error('   网络错误：可能是 IP 被屏蔽，请尝试使用代理');
     }
 
     throw error;
@@ -125,22 +181,10 @@ async function main() {
   console.log('━'.repeat(50));
 
   try {
-    // 1. 检查 Service Role Key 是否配置
-    if (SUPABASE_SERVICE_ROLE_KEY === 'YOUR_SERVICE_ROLE_KEY') {
-      console.error('❌ 错误：请先配置 SUPABASE_SERVICE_ROLE_KEY');
-      console.error('   获取方式：');
-      console.error('   1. 登录 https://supabase.com/dashboard');
-      console.error('   2. 选择 GoldBet 项目');
-      console.error('   3. 进入 Settings > API');
-      console.error('   4. 复制 service_role key');
-      console.error('   5. 替换本文件第 8 行的 YOUR_SERVICE_ROLE_KEY');
-      process.exit(1);
-    }
-
-    // 2. 获取金价
+    // 1. 获取金价
     const priceData = await fetchGoldPrice();
 
-    // 3. 保存到 Supabase
+    // 2. 保存到 Supabase
     await saveToSupabase(priceData);
 
     console.log('━'.repeat(50));
@@ -154,3 +198,4 @@ async function main() {
 
 // 运行主函数
 main();
+
