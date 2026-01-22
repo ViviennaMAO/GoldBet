@@ -3,6 +3,7 @@
 
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
+const { HttpsProxyAgent } = require('https-proxy-agent');
 const https = require('https');
 
 // 环境变量检查
@@ -10,7 +11,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL || 'https://xdvulevrojtvhcmdaexd.s
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const GOLD_API_KEY = process.env.GOLD_API_KEY;
 
-// 代理配置
+// 代理配置 (支持 HTTP/HTTPS 代理)
 const PROXY_URL = process.env.PROXY_URL || process.env.HTTP_PROXY || process.env.HTTPS_PROXY;
 
 // 验证必要配置
@@ -28,37 +29,67 @@ if (!GOLD_API_KEY) {
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 /**
+ * 解析并编码代理 URL
+ * 解决密码中包含特殊字符导致的 407 错误
+ */
+function getSafeProxyAgent(proxyUrlStr) {
+  try {
+    // 1. 尝试直接解析
+    const url = new URL(proxyUrlStr);
+
+    // 如果有用户名密码，需要重新构建
+    if (url.username && url.password) {
+      // 注意：decodeURIComponent 是为了防止已经被编码过的字符被二次编码
+      // 但这里我们假设输入的是原始字符串，或者已经是部分编码的
+      // 最稳妥的方式是：手动提取，然后重新正确编码
+
+      // 使用正则从原始字符串中提取，因为 new URL() 可能已经把某些字符搞乱了
+      // 格式通常是: protocol://user:pass@host:port
+      const match = proxyUrlStr.match(/^(https?:\/\/)([^:]+):([^@]+)@(.+)$/);
+
+      if (match) {
+        console.log('🔒 检测到认证信息，正在重组安全 URL...');
+        const protocol = match[1];
+        const user = match[2];
+        const pass = match[3];
+        const hostPath = match[4];
+
+        // 对用户名和密码进行编码
+        const encodedUser = encodeURIComponent(decodeURIComponent(user));
+        const encodedPass = encodeURIComponent(decodeURIComponent(pass));
+
+        const safeUrl = `${protocol}${encodedUser}:${encodedPass}@${hostPath}`;
+        return new HttpsProxyAgent(safeUrl);
+      }
+    }
+
+    return new HttpsProxyAgent(proxyUrlStr);
+
+  } catch (e) {
+    console.error('⚠️ 代理 URL 解析异常:', e.message);
+    return new HttpsProxyAgent(proxyUrlStr);
+  }
+}
+
+/**
  * 获取 Axios 实例（根据是否配置代理）
  */
 function getAxiosInstance() {
   const config = {
-    timeout: 10000
+    timeout: 20000 // 增加到 20s
   };
 
   if (PROXY_URL) {
-    console.log(`🌐 检测到代理配置: ${PROXY_URL}`);
+    console.log(`🌐 检测到代理配置，正在初始化...`);
     try {
-      const proxyUrl = new URL(PROXY_URL);
-      config.proxy = {
-        protocol: proxyUrl.protocol.replace(':', ''),
-        host: proxyUrl.hostname,
-        port: proxyUrl.port,
-        auth: proxyUrl.username ? {
-          username: proxyUrl.username,
-          password: proxyUrl.password
-        } : undefined
-      };
+      const agent = getSafeProxyAgent(PROXY_URL);
 
-      // 如果使用 HTTPS 代理，可能还需要 httpsAgent
-      if (proxyUrl.protocol === 'https:') {
-        config.httpsAgent = new https.Agent({
-          rejectUnauthorized: false // 视情况而定，有些代理可能证书不被信任
-        });
-      }
+      config.httpsAgent = agent;
+      config.proxy = false; // 禁用默认 proxy
 
+      console.log('✅ 代理 Agent 已配置');
     } catch (e) {
-      console.error('❌ 代理 URL 解析失败:', e.message);
-      // 继续尝试直连
+      console.error('❌ 代理配置失败:', e.message);
     }
   } else {
     console.log('DIRECT 连接（无代理）');
@@ -107,13 +138,10 @@ async function fetchGoldPrice() {
 
     if (error.response) {
       console.error('   状态码:', error.response.status);
-      console.error('   响应:', error.response.data);
 
-      if (error.response.status === 429) {
-        console.error('   提示: GoldAPI.io 免费版限制为 1次/小时，请稍后再试');
+      if (error.response.status === 407) {
+        console.error('   🚨 代理认证失败 (407)！已尝试自动编码.');
       }
-    } else if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
-      console.error('   网络错误：可能是 IP 被屏蔽，请尝试使用代理');
     }
 
     throw error;
@@ -198,4 +226,3 @@ async function main() {
 
 // 运行主函数
 main();
-
