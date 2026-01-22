@@ -111,4 +111,86 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // --- Luffa Wallet Integration ---
+    const walletInfo = document.querySelector('.wallet-info');
+    const walletAddressEl = document.querySelector('.wallet-address');
+    const walletLabelEl = document.querySelector('.wallet-label');
+
+    function create16String() {
+        const len = 16;
+        const strVals = 'ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';
+        const maxLen = strVals.length;
+        let randomStr = '';
+        for (let i = 0; i < len; i++) {
+            randomStr += strVals.charAt(Math.floor(Math.random() * maxLen));
+        }
+        return randomStr;
+    }
+
+    function formatAddress(addr) {
+        if (!addr) return '';
+        return addr.substring(0, 6) + '...' + addr.substring(addr.length - 4);
+    }
+
+    async function connectWallet() {
+        console.log('尝试连接 Luffa 钱包...');
+
+        const opts = {
+            api_name: 'luffaWebRequest',
+            data: {
+                uuid: create16String(),
+                methodName: "connect",
+                initData: {
+                    network: "endless",
+                },
+                metadata: {
+                    superBox: true,
+                    url: window.location.href,
+                    icon: "https://goldbet.app/icon.png" // 示意图标
+                },
+                from: "",
+                data: {},
+            },
+            success: (res) => {
+                console.log('Luffa 连接成功:', res);
+                if (res.data && res.data.address) {
+                    const address = res.data.address;
+                    walletAddressEl.textContent = formatAddress(address);
+                    walletLabelEl.textContent = '已连接 Luffa 钱包';
+                    walletLabelEl.style.color = '#22c55e';
+
+                    // 可选：保存到本地
+                    localStorage.setItem('walletAddress', address);
+                }
+            },
+            fail: (err) => {
+                console.error('Luffa 连接失败:', err);
+                alert('连接钱包失败，请确保在 Luffa 环境中运行');
+            }
+        };
+
+        if (window.wx && window.wx.invokeNativePlugin) {
+            window.wx.invokeNativePlugin(opts);
+        } else if (window.parent && window.parent.wx && window.parent.wx.invokeNativePlugin) {
+            // 兼容在 iframe/WebView 中通过父窗口调用
+            window.parent.wx.invokeNativePlugin(opts);
+        } else {
+            console.warn('当前环境不支持 Luffa 原生接口');
+            alert('请在 Luffa App 中打开以连接钱包');
+        }
+    }
+
+    // 点击钱包区域触发连接
+    if (walletInfo) {
+        walletInfo.style.cursor = 'pointer';
+        walletInfo.addEventListener('click', connectWallet);
+    }
+
+    // 检查缓存的地址
+    const cachedAddress = localStorage.getItem('walletAddress');
+    if (cachedAddress) {
+        walletAddressEl.textContent = formatAddress(cachedAddress);
+        walletLabelEl.textContent = '已连接 Luffa 钱包';
+    }
 });
